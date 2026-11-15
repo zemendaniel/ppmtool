@@ -31,11 +31,11 @@ int main(const int argc, char *argv[]) {
     // todo switch statement for the operations
     
     const bool writeSuccess = writeImage(image, outputFilename);
+    freeImage(image);
     if (!writeSuccess) {
         printf("Error writing image to %s\n", outputFilename);
         return 1;
     }
-    freeImage(image);
     
     return 0;
 }
