@@ -8,4 +8,6 @@ add_executable(ppmtool main.c
         parser.c
         parser.c
         parser.h
-        ppm.h)
+        ppm.h
+        operations.c
+        operations.h)
