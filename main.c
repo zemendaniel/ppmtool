@@ -1,3 +1,4 @@
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include "ppm.h"
@@ -63,7 +64,7 @@ int main(const int argc, char *argv[]) {
         
     }
     else if (strcmp(operation,  "blur") == 0) {
-        
+        applyBlur(image);
     }
     else {
         printf("Error: unknown operation %s\n", operation);

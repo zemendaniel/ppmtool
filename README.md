@@ -22,4 +22,5 @@ What the files and functions do:
     - `writeImage()` saves the image as P3; `freeImage()` releases its memory
     - `readInteger()` converts a token to an integer with range checks; `loadFailed()` reports loading errors and cleans up
  - `parser.h` / `parser.c`: declare token result codes and implement `nextToken()`, which reads tokens while skipping whitespace and comments, and reports EOF, file errors or oversized tokens
+ - `CMakeLists.txt`: configures the C (C99) executable and its source files
  - `cica.ppm`: sample P3 image for trying the program
