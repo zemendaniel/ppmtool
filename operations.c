@@ -43,12 +43,14 @@ void applyBrightness(Image *image, int offset) {
     }
 }
 
-void applyBlur(Image *image) {
+bool applyBlur(Image *image) {
     Pixel *oldData = malloc(image->width * image->height * sizeof(Pixel));
     Pixel **oldRows = malloc(image->height * sizeof(Pixel*));
     if (oldData == NULL || oldRows == NULL) {
+        free(oldData);
+        free(oldRows);
         fprintf(stderr, "Error: Failed to allocate memory for blur operation.\n");
-        return;
+        return false;
     }
     const size_t size = (size_t)image->width * image->height;
     memcpy(oldData, image->rows[0],  size * sizeof(Pixel));
@@ -59,6 +61,9 @@ void applyBlur(Image *image) {
     
     for (int y = 0; y < image->height; y++) {
         for (int x = 0; x < image->width; x++) {
+            if (x == 0 || y == 0 || x == image->width - 1 || y == image->height - 1)
+                continue;
+            
             int r = 0, g = 0, b = 0;
             int count = 0;
             
@@ -85,16 +90,55 @@ void applyBlur(Image *image) {
     }
     free(oldData);
     free(oldRows);
+    return true;
 }
 
 void applyMirror(Image *image) {
-    
-}
-
-void applyRotate(Image *image) {
-    for (int i = 0; i < image->height; i++) {
-        for (int j = 0; j < image->width; j++) {
-            
+    for (int y = 0; y < image->height; y++) {
+        for (int x = 0; x < image->width / 2; x++) {
+            Pixel *leftPixel = &(image->rows[y][x]);
+            Pixel *rightPixel = &(image->rows[y][image->width - 1 - x]);
+            Pixel temp = *leftPixel;
+            *leftPixel = *rightPixel;
+            *rightPixel = temp;
         }
     }
+}
+
+bool applyRotate(Image *image) {
+    int oldHeight = image->height;
+    int oldWidth = image->width;
+    int newHeight = oldWidth;
+    int newWidth = oldHeight;
+    
+    Pixel *newData = malloc(
+        (size_t)newWidth * newHeight * sizeof(Pixel)
+    );
+    Pixel **newRows = malloc(
+        (size_t)newHeight * sizeof(Pixel *)
+    );
+    if (newData == NULL || newRows == NULL) {
+        free(newData);
+        free(newRows);
+        return false;
+    }
+    
+    for (int y = 0; y < newHeight; y++) {
+        newRows[y] = newData + (size_t)y * newWidth;
+    }
+    
+    for (int y = 0; y < oldHeight; y++) {
+        for (int x = 0; x < oldWidth; x++) {
+            newRows[x][oldHeight - 1 - y] = image->rows[y][x];
+        }
+    }
+    
+    free(image->rows[0]);
+    free(image->rows);
+
+    image->rows = newRows;
+    image->data = newData;
+    image->width = newWidth;
+    image->height = newHeight;
+    return true;
 }
