@@ -24,6 +24,11 @@ void applyNegative(Image *image) {
     }
 }
 
+/**
+ * @brief Clamp a color channel value to the range 0 through 255.
+ * @param[in] value Channel value before clamping.
+ * @return The clamped channel value.
+ */
 static unsigned char clamp(const int value) {
     if (value < 0) 
         return 0;

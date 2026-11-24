@@ -10,6 +10,13 @@
 #include "debugmalloc.h"
 
 
+/**
+ * @brief Read the next token as a decimal integer that fits in an int.
+ * @param[in,out] file Open input stream to read from.
+ * @param[out] value Parsed integer, written on success.
+ * @retval true The integer was read and stored.
+ * @retval false Reading the token or converting it to an integer failed.
+ */
 static bool readInteger(FILE *file, int *value) {
     char buffer[32];
 
@@ -44,6 +51,13 @@ void freeImage(Image *image) {
     free(image);
 }
 
+/**
+ * @brief Report a load error and release resources acquired so far.
+ * @param[in] file Stream to close, or @c NULL.
+ * @param[in] image Partially loaded image to free, or @c NULL.
+ * @param[in] errorMessage Diagnostic to write to stderr.
+ * @return @c NULL to signal that loading failed.
+ */
 static Image* loadFailed(FILE *file, Image *image, const char *errorMessage) {
     fprintf(stderr, "Could not load PPM file %s\n", errorMessage);
     if (file != NULL) {

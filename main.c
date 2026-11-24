@@ -28,6 +28,7 @@ static const struct {
     [BLUR] = {"blur", "Apply a 3x3 box blur and preserve the border pixels."}
 };
 
+/** @brief Print command usage and the available operations to stdout. */
 static void printHelp(void) {
     puts("Usage: ppmtool <input.ppm> <output.ppm> <operation> [N]\n"
          "       ppmtool --help\n\n"
@@ -40,6 +41,11 @@ static void printHelp(void) {
     }
 }
 
+/**
+ * @brief Look up an operation by its command name.
+ * @param[in] name Operation name from the command line.
+ * @return The matching operation, or @c OPERATION_COUNT if the name is unknown.
+ */
 static Operation findOperation(const char *name) {
     for (Operation operation = GRAYSCALE; operation < OPERATION_COUNT; operation++) {
         if (strcmp(name, operations[operation].name) == 0) {
@@ -49,6 +55,13 @@ static Operation findOperation(const char *name) {
     return OPERATION_COUNT;
 }
 
+/**
+ * @brief Parse a brightness offset in the range -100 through 100.
+ * @param[in] argument Command-line value to parse.
+ * @param[out] offset Parsed integer, written on success.
+ * @retval true The offset was parsed and is in range.
+ * @retval false The value is invalid and a diagnostic was written to stderr.
+ */
 static bool parseBrightness(const char *argument, int *offset) {
     char *end;
     errno = 0;
@@ -66,6 +79,14 @@ static bool parseBrightness(const char *argument, int *offset) {
     return true;
 }
 
+/**
+ * @brief Apply the selected operation to an image.
+ * @param[in,out] image Image to modify.
+ * @param[in] operation Operation to apply.
+ * @param[in] brightnessOffset Offset used for the brightness operation.
+ * @retval true The operation succeeded.
+ * @retval false The operation is unknown or failed.
+ */
 static bool applyOperation(Image *image, Operation operation, int brightnessOffset) {
     switch (operation) {
         case GRAYSCALE:
@@ -90,6 +111,13 @@ static bool applyOperation(Image *image, Operation operation, int brightnessOffs
     return false;
 }
 
+/**
+ * @brief Validate the command line, then show help or process one P3 image.
+ * @param[in] argc Number of command-line arguments.
+ * @param[in] argv Command-line argument strings.
+ * @retval 0 Help was printed or the result was written successfully.
+ * @retval 1 Argument validation, image loading, processing, or writing failed.
+ */
 int main(int argc, char *argv[]) {
     if (argc >= 2 && strcmp(argv[1], "--help") == 0) {
         if (argc != 2) {
