@@ -41,6 +41,10 @@ static bool readInteger(FILE *file, int *value) {
     return true;
 }
 
+/**
+ * @brief Release an image, its row-pointer array, and its pixel buffer.
+ * @param[in] image Image to release, or @c NULL.
+ */
 void freeImage(Image *image) {
     if (image == NULL) {
         return;
@@ -68,6 +72,11 @@ static Image* loadFailed(FILE *file, Image *image, const char *errorMessage) {
     return NULL;
 }
 
+/**
+ * @brief Load a P3 image with a Maxval in the range 1 through 255.
+ * @param[in] filename Path to the image file.
+ * @return The loaded image, which the caller must release with freeImage(), or @c NULL on a recoverable error.
+ */
 Image *loadImage(const char *filename) {
     FILE *file = fopen(filename, "r");
 
@@ -79,8 +88,7 @@ Image *loadImage(const char *filename) {
     Image *image = NULL;
 
     char header[3];
-    if (nextToken(file, header, sizeof(header)) != TOKEN_OK ||
-        strcmp(header, "P3") != 0) {
+    if (nextToken(file, header, sizeof(header)) != TOKEN_OK || strcmp(header, "P3") != 0) {
         return loadFailed(file, image, "Invalid PPM header");
     }
 
@@ -139,8 +147,8 @@ Image *loadImage(const char *filename) {
         image->rows[y] = image->data + y * w;
     }
 
-    for (size_t y = 0; y < h; y++) {
-        for (size_t x = 0; x < w; x++) {
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
             int r, g, b;
 
             if (!readInteger(file, &r) ||
@@ -177,6 +185,13 @@ Image *loadImage(const char *filename) {
     return image;
 }
 
+/**
+ * @brief Write an image as P3, replacing the destination's existing contents.
+ * @param[in] image Image to write. The caller retains ownership.
+ * @param[in] filename Path to the output file.
+ * @retval true The file was written and closed successfully.
+ * @retval false A file operation failed. The output file may be partial.
+ */
 bool writeImage(const Image *image, const char *filename) {
     FILE *file = fopen(filename, "w");
     if (file == NULL) {
@@ -187,10 +202,10 @@ bool writeImage(const Image *image, const char *filename) {
     fprintf(file, "P3\n");
     fprintf(file, "%d %d\n", image->width, image->height);
     fprintf(file, "%d\n", image->maxValue);
-    for (size_t y = 0; y < image->height; y++) {
-        for (size_t x = 0; x < image->width; x++) {
-            const Pixel pixel = image->rows[y][x];
-            fprintf(file, "%d %d %d\n", pixel.r, pixel.g, pixel.b);
+    for (int y = 0; y < image->height; y++) {
+        for (int x = 0; x < image->width; x++) {
+            const Pixel *pixel = &image->rows[y][x];
+            fprintf(file, "%d %d %d\n", pixel->r, pixel->g, pixel->b);
         }
     }
     bool success = !ferror(file);

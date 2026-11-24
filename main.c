@@ -7,34 +7,38 @@
 #include "operations.h"
 
 typedef enum {
-    GRAYSCALE,
-    NEGATIVE,
+    GRAYSCALE, // = 0
+    NEGATIVE, // = 1 ...
     BRIGHTNESS,
     MIRROR,
     ROTATE90,
     BLUR,
+    // Unknown operation, also useful because it can be used to get the length of the array
     OPERATION_COUNT
 } Operation;
 
-static const struct {
+typedef const struct {
     const char *name;
     const char *description;
-} operations[OPERATION_COUNT] = {
+} OperationInfo;
+
+static const OperationInfo operations[OPERATION_COUNT] = {
     [GRAYSCALE] = {"grayscale", "Convert the image to grayscale."},
     [NEGATIVE] = {"negative", "Invert the colors."},
     [BRIGHTNESS] = {"brightness", "Adjust brightness by an integer N from -100 to 100."},
     [MIRROR] = {"mirror", "Flip the image horizontally."},
     [ROTATE90] = {"rotate90", "Rotate the image 90 degrees clockwise."},
-    [BLUR] = {"blur", "Apply a 3x3 box blur and preserve the border pixels."}
+    [BLUR] = {"blur", "Apply a 3x3 box blur and not modify the border pixels."}
 };
 
-/** @brief Print command usage and the available operations to stdout. */
+/** @brief Prints how to use the ppmtool and list the available operations to stdout. */
 static void printHelp(void) {
     puts("Usage: ppmtool <input.ppm> <output.ppm> <operation> [N]\n"
          "       ppmtool --help\n\n"
          "Process a P3 PPM image with one operation.\n\n"
          "Operations:");
-
+    
+    // Loop over the operations and show the user what they do
     for (Operation operation = GRAYSCALE; operation < OPERATION_COUNT; operation++) {
         printf("  %s%s\n      %s\n", operations[operation].name,
                operation == BRIGHTNESS ? " N" : "", operations[operation].description);
@@ -60,16 +64,18 @@ static Operation findOperation(const char *name) {
  * @param[in] argument Command-line value to parse.
  * @param[out] offset Parsed integer, written on success.
  * @retval true The offset was parsed and is in range.
- * @retval false The value is invalid and a diagnostic was written to stderr.
+ * @retval false The value is invalid and the error was written to stderr.
  */
 static bool parseBrightness(const char *argument, int *offset) {
     char *end;
     errno = 0;
     const long value = strtol(argument, &end, 10);
+    // If argument contained a non-digit character or it was empty
     if (end == argument || *end != '\0') {
         fputs("Error: brightness value must be an integer\n", stderr);
         return false;
     }
+    // Number could not be parsed into a long (it was too long) or out of brightness range
     if (errno == ERANGE || value < -100 || value > 100) {
         fputs("Error: brightness value must be between -100 and 100\n", stderr);
         return false;
@@ -127,14 +133,7 @@ int main(int argc, char *argv[]) {
         printHelp();
         return 0;
     }
-
-    for (int i = 1; i <= 2 && i < argc; i++) {
-        if (argv[i][0] == '-') {
-            fprintf(stderr, "Error: unexpected option %s (use ./ for filenames beginning with -)\n",
-                    argv[i]);
-            return 1;
-        }
-    }
+    
     if (argc < 4) {
         fputs("Error: expected an input file, an output file, and an operation\n"
               "Run ppmtool --help for usage.\n", stderr);

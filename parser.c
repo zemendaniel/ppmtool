@@ -3,14 +3,25 @@
 #include <ctype.h>
 #include "parser.h"
 
-
-TokenResult nextToken(FILE *file, char *buffer, const int capacity) {
-    if (capacity <= 0) {
-        fprintf(stderr, "Capacity must be greater than 0");
+/**
+ * @brief Read the next token, skipping whitespace and comments beginning with a hash.
+ * @param[in,out] file Open input stream. The caller is responsible for closing it.
+ * @param[out] buffer Destination for the token. Use it only after @c TOKEN_OK.
+ * @param[in] capacity Buffer size in bytes, including room for the terminating NUL.
+ * @retval TOKEN_OK A token was stored and NUL-terminated.
+ * @retval TOKEN_EOF The stream ended before another token was found.
+ * @retval TOKEN_TOO_LONG The token does not fit in the buffer.
+ * @retval TOKEN_INVALID_CAPACITY The capacity is zero.
+ * @retval TOKEN_FILE_ERROR Reading the stream failed.
+ */
+TokenResult nextToken(FILE *file, char *buffer, size_t capacity) {
+    if (capacity == 0) {
+        fputs("Capacity must be greater than 0\n", stderr);
         return TOKEN_INVALID_CAPACITY;
     }
-    int bufferIndex = 0;
+    size_t bufferIndex = 0;
     while (true) {
+        // Read the next character
         const int c = fgetc(file);
         
         if (c == EOF) {
@@ -43,11 +54,11 @@ TokenResult nextToken(FILE *file, char *buffer, const int capacity) {
             continue;
         }
         
-        if (bufferIndex + 1 >= capacity) {
-            fprintf(stderr, "The ppm file contains a token that is too large. It is more than %d characters.\n", capacity);
+        if (bufferIndex == capacity - 1) {
+            fprintf(stderr, "PPM token exceeds the maximum length of %zu characters.\n", capacity - 1);
             return TOKEN_TOO_LONG;
         }
         
-        buffer[bufferIndex++] = c;
+        buffer[bufferIndex++] = (char)c;
     }    
 }
