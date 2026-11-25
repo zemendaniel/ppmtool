@@ -6,7 +6,8 @@ typedef enum {
     TOKEN_EOF,
     TOKEN_TOO_LONG,
     TOKEN_INVALID_CAPACITY,
-    TOKEN_FILE_ERROR
+    TOKEN_FILE_ERROR,
+    TOKEN_NUL_BYTE
 } TokenResult;
 
 

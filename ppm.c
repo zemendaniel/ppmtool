@@ -73,7 +73,7 @@ static Image* loadFailed(FILE *file, Image *image, const char *errorMessage) {
 }
 
 /**
- * @brief Load a P3 image with a Maxval in the range 1 through 255.
+ * @brief Load a P3 image with a Maxval of 255.
  * @param[in] filename Path to the image file.
  * @return The loaded image, which the caller must release with freeImage(), or @c NULL on a recoverable error.
  */
@@ -100,9 +100,11 @@ Image *loadImage(const char *filename) {
         return loadFailed(file, image, "Invalid dimensions or Maxval");
     }
 
-    if (width <= 0 || height <= 0 ||
-        maxValue <= 0 || maxValue > 255) {
-        return loadFailed(file, image, "Dimensions or Maxval out of range");
+    if (width <= 0 || height <= 0) {
+        return loadFailed(file, image, "Dimensions out of range");
+    }
+    if (maxValue != 255) {
+        return loadFailed(file, image, "Unsupported Maxval (expected 255)");
     }
 
     const size_t w = (size_t)width;

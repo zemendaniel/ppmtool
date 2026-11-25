@@ -13,6 +13,7 @@
  * @retval TOKEN_TOO_LONG The token does not fit in the buffer.
  * @retval TOKEN_INVALID_CAPACITY The capacity is zero.
  * @retval TOKEN_FILE_ERROR Reading the stream failed.
+ * @retval TOKEN_NUL_BYTE A NUL byte was found in the input stream.
  */
 TokenResult nextToken(FILE *file, char *buffer, size_t capacity) {
     if (capacity == 0) {
@@ -32,6 +33,11 @@ TokenResult nextToken(FILE *file, char *buffer, size_t capacity) {
             buffer[bufferIndex] = '\0';
             return TOKEN_OK;
         }
+
+        if (c == '\0') {
+            fputs("PPM input contains a NUL byte.\n", stderr);
+            return TOKEN_NUL_BYTE;
+        }
         
         if (isspace(c)) {
             if (bufferIndex > 0) {
@@ -46,6 +52,10 @@ TokenResult nextToken(FILE *file, char *buffer, size_t capacity) {
                 const int comment_c = fgetc(file);
                 if (ferror(file)) return TOKEN_FILE_ERROR;
                 if (comment_c == EOF || comment_c == '\n' || comment_c == '\r') break;
+                if (comment_c == '\0') {
+                    fputs("PPM input contains a NUL byte.\n", stderr);
+                    return TOKEN_NUL_BYTE;
+                }
             }
             if (bufferIndex > 0) {
                 buffer[bufferIndex] = '\0';
